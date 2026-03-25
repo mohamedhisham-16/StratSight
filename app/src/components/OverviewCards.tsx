@@ -12,33 +12,33 @@ import { cn } from "../lib/utils";
 
 const stats = [
   {
-    name: "Brands Tracked",
-    value: "18",
-    change: "+2",
+    name: "Competitors Tracked",
+    value: "14",
+    change: "+2 this week",
     trending: "up",
     icon: Users,
     color: "indigo"
   },
   {
-    name: "Market Signals",
-    value: "245",
-    change: "+18%",
+    name: "Active Signals",
+    value: "128",
+    change: "+15 today",
     trending: "up",
     icon: Activity,
     color: "violet"
   },
   {
-    name: "Delivery Trend",
+    name: "Market Trend",
     value: "Bullish",
-    change: "High-Vol",
+    change: "High-Volume",
     trending: "up",
     icon: TrendingUp,
     color: "emerald"
   },
   {
-    name: "Risk Index",
-    value: "High",
-    change: "Volatile",
+    name: "Risk Level",
+    value: "Medium",
+    change: "Stable",
     trending: "neutral",
     icon: AlertTriangle,
     color: "amber"
@@ -47,37 +47,51 @@ const stats = [
 
 export function OverviewCards() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 @[900px]:grid-cols-4 gap-6">
       {stats.map((stat, i) => (
         <div 
           key={i} 
-          className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:shadow-lg hover:shadow-black/20 transition-all duration-300 group relative overflow-hidden"
+          className="glass-panel p-6 rounded-2xl group relative overflow-hidden isolate"
+          style={{ animationDelay: `${i * 100}ms` }}
         >
-          <div className="flex items-center justify-between mb-4">
+          {/* Animated Glow Backdrop */}
+          <div className={cn(
+            "absolute -inset-1 opacity-0 group-hover:opacity-20 transition-opacity duration-700 blur-2xl -z-10",
+            stat.color === "indigo" ? "bg-indigo-500" :
+            stat.color === "violet" ? "bg-violet-500" :
+            stat.color === "emerald" ? "bg-emerald-500" :
+            "bg-amber-500"
+          )} />
+          
+          <div className="flex items-start justify-between mb-8 relative z-10">
             <div className={cn(
-              "p-2 rounded-lg bg-zinc-950 border border-zinc-800 transition-colors group-hover:border-indigo-500/30",
-              stat.color === "indigo" && "text-indigo-400",
-              stat.color === "violet" && "text-violet-400",
-              stat.color === "emerald" && "text-emerald-400",
-              stat.color === "amber" && "text-amber-400"
+              "p-3 rounded-xl bg-white/[0.03] border border-white/10 transition-all duration-500 group-hover:scale-110",
+              stat.color === "indigo" ? "text-indigo-400 group-hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] group-hover:border-indigo-500/50" :
+              stat.color === "violet" ? "text-violet-400 group-hover:shadow-[0_0_15px_rgba(139,92,246,0.5)] group-hover:border-violet-500/50" :
+              stat.color === "emerald" ? "text-emerald-400 group-hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] group-hover:border-emerald-500/50" :
+              "text-amber-400 group-hover:shadow-[0_0_15px_rgba(245,158,11,0.5)] group-hover:border-amber-500/50"
             )}>
-              <stat.icon className="h-5 w-5" />
+              <stat.icon className="h-6 w-6" />
             </div>
             <div className={cn(
-              "flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full",
-              stat.trending === "up" ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"
+              "flex items-center gap-1.5 text-xs font-extrabold px-2.5 py-1 rounded-full backdrop-blur-md border",
+              stat.trending === "up" 
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+                : "bg-amber-500/10 text-amber-400 border-amber-500/20"
             )}>
-              {stat.trending === "up" ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+              {stat.trending === "up" ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
               {stat.change}
             </div>
           </div>
-          <div>
-            <p className="text-sm font-medium text-zinc-400 mb-1">{stat.name}</p>
-            <h3 className="text-2xl font-bold text-zinc-100 tracking-tight group-hover:text-white transition-colors">
+          <div className="relative z-10 flex flex-col gap-1">
+            <h3 className="text-4xl font-extrabold text-white tracking-tighter drop-shadow-md">
               {stat.value}
             </h3>
+            <p className="text-sm font-semibold text-zinc-500 uppercase tracking-widest">{stat.name}</p>
           </div>
-          <div className="absolute -bottom-2 -right-2 h-16 w-16 opacity-10 group-hover:opacity-20 transition-opacity">
+          
+          {/* Decorative Corner Icon */}
+          <div className="absolute -bottom-6 -right-6 h-32 w-32 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 pointer-events-none z-0">
             <stat.icon className="h-full w-full rotate-12" />
           </div>
         </div>

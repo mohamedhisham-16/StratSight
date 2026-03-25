@@ -4,7 +4,8 @@ import {
   ArrowUpRight, 
   ExternalLink,
   Zap,
-  Tag
+  Tag,
+  ShieldAlert
 } from "lucide-react";
 import { cn } from "../lib/utils";
 
@@ -15,14 +16,16 @@ const competitors = [
     change: "Zomato Gold Revamp",
     trend: "up",
     logo: "Z",
+    color: "rose",
     lastUpdate: "12m ago"
   },
   {
     name: "Swiggy",
-    impact: "High",
+    impact: "Critical",
     change: "Dineout Integration",
     trend: "up",
     logo: "S",
+    color: "amber",
     lastUpdate: "1h ago"
   },
   {
@@ -31,55 +34,76 @@ const competitors = [
     change: "Zepto Pass Launch",
     trend: "up",
     logo: "Zp",
+    color: "indigo",
     lastUpdate: "4h ago"
   }
 ];
 
 export function CompetitorCard() {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-zinc-100">Top Competitors</h3>
-        <button className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 group">
-          View All <ArrowUpRight className="h-3 w-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+    <div className="glass-panel p-8 rounded-3xl space-y-6 h-full flex flex-col">
+      <div className="flex items-center justify-between border-b border-white/5 pb-4">
+        <div>
+          <h3 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+            Competitor Radar
+          </h3>
+          <p className="text-sm text-zinc-400 font-medium">Real-time threat assessment</p>
+        </div>
+        <button className="text-xs font-extrabold text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 group px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 transition-all shadow-[0_0_10px_rgba(99,102,241,0.1)] hover:shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+          Radar View <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
         </button>
       </div>
       
-      <div className="grid grid-cols-1 gap-4">
+      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
         {competitors.map((comp, i) => (
           <div 
             key={i} 
-            className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/80 transition-all duration-300 group flex items-center justify-between"
+            className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/[0.04] transition-all duration-300 group flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden"
           >
-            <div className="flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-300 group-hover:border-indigo-500/30 transition-colors">
+            {/* Impact Gradient Overlay */}
+            <div className={cn(
+              "absolute top-0 right-0 w-32 h-32 blur-3xl rounded-full opacity-10 group-hover:opacity-20 transition-opacity -z-10",
+              comp.color === 'rose' ? 'bg-rose-500' :
+              comp.color === 'amber' ? 'bg-amber-500' : 'bg-indigo-500'
+            )} />
+
+            <div className="flex items-center gap-4 relative z-10">
+              <div className={cn(
+                "h-12 w-12 rounded-xl flex items-center justify-center text-lg font-black border backdrop-blur-md shadow-inner transition-colors",
+                comp.color === 'rose' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-[inset_0_0_10px_rgba(244,63,94,0.1)] group-hover:border-rose-500/40' :
+                comp.color === 'amber' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[inset_0_0_10px_rgba(245,158,11,0.1)] group-hover:border-amber-500/40' :
+                'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 shadow-[inset_0_0_10px_rgba(99,102,241,0.1)] group-hover:border-indigo-500/40'
+              )}>
                 {comp.logo}
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-zinc-100 mb-0.5">{comp.name}</h4>
+                <h4 className="text-base font-bold text-white mb-1.5 flex items-center gap-2">
+                  {comp.name}
+                  <span className="text-[10px] text-zinc-500 font-medium">{comp.lastUpdate}</span>
+                </h4>
                 <div className="flex items-center gap-2">
                   <span className={cn(
-                    "text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider",
-                    comp.impact === "High" ? "bg-rose-500/10 text-rose-500" :
-                    comp.impact === "Medium" ? "bg-amber-500/10 text-amber-500" :
-                    "bg-zinc-500/10 text-zinc-400"
+                    "text-[9px] px-2 py-0.5 rounded-full font-extrabold uppercase tracking-widest flex items-center gap-1",
+                    comp.impact === "Critical" ? "bg-rose-500/20 text-rose-400 border border-rose-500/30" :
+                    comp.impact === "High" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" :
+                    "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
                   )}>
+                    {comp.impact === "Critical" && <ShieldAlert className="h-2.5 w-2.5" />}
                     {comp.impact} Impact
                   </span>
-                  <span className="text-[10px] text-zinc-500">{comp.lastUpdate}</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-6 text-right">
-              <div className="hidden sm:block">
-                <p className="text-xs text-zinc-400 mb-1 leading-none uppercase tracking-tighter">Key Change</p>
-                <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-200">
-                  {comp.change.includes("Price") ? <Tag className="h-3 w-3 text-amber-400" /> : <Zap className="h-3 w-3 text-indigo-400" />}
+            <div className="flex items-center gap-6 sm:text-right relative z-10 ml-16 sm:ml-0">
+              <div>
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1.5">Action Detected</p>
+                <div className="flex justify-end items-center gap-1.5 text-xs font-bold text-zinc-200 bg-white/5 px-2.5 py-1 rounded-md border border-white/5">
+                  {comp.change.includes("Revamp") ? <Tag className="h-3.5 w-3.5 text-amber-400" /> : <Zap className="h-3.5 w-3.5 text-indigo-400" />}
                   {comp.change}
                 </div>
               </div>
-              <button className="p-2 rounded-lg text-zinc-500 hover:text-zinc-100 hover:bg-zinc-800 transition-colors">
+              <button className="p-2.5 rounded-xl border border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all shadow-sm">
                 <ExternalLink className="h-4 w-4" />
               </button>
             </div>

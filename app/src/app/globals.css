@@ -1,44 +1,50 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #09090b;
+  --color-background: #030303;
   --color-foreground: #fafafa;
 
-  --color-card: #18181b;
+  --color-card: #0a0a0a;
   --color-card-foreground: #fafafa;
 
-  --color-popover: #09090b;
+  --color-popover: #0a0a0a;
   --color-popover-foreground: #fafafa;
 
   --color-primary: #6366f1;
-  --color-primary-foreground: #fafafa;
+  --color-primary-foreground: #ffffff;
 
-  --color-secondary: #27272a;
+  --color-secondary: #18181b;
   --color-secondary-foreground: #fafafa;
 
-  --color-muted: #27272a;
+  --color-muted: #18181b;
   --color-muted-foreground: #a1a1aa;
 
-  --color-accent: #27272a;
+  --color-accent: #1f1f22;
   --color-accent-foreground: #fafafa;
 
   --color-destructive: #ef4444;
   --color-destructive-foreground: #fafafa;
 
-  --color-border: #27272a;
-  --color-input: #27272a;
-  --color-ring: #6366f1;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-input: rgba(255, 255, 255, 0.08);
+  --color-ring: rgba(99, 102, 241, 0.5);
 
   --font-sans: "Geist Sans", ui-sans-serif, system-ui;
   --font-mono: "Geist Mono", ui-mono-regular, Menlo, Monaco, Consolas;
 
+  --radius-xl: 1rem;
   --radius-lg: 0.75rem;
   --radius-md: 0.5rem;
   --radius-sm: 0.25rem;
+
+  --animate-blob: blob 10s infinite alternate;
+  --animate-blob-slow: blob-slow 15s infinite alternate;
+  --animate-pulse-slow: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-float: float 6s ease-in-out infinite;
 }
 
 :root {
-  --background: #09090b;
+  --background: #030303;
   --foreground: #fafafa;
 }
 
@@ -50,14 +56,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Utilities */
+/* Custom Utilities & Animations */
 @layer utilities {
   .glass {
-    @apply bg-zinc-900/50 backdrop-blur-md border border-zinc-800/50;
+    @apply bg-black/40 backdrop-blur-2xl border border-white/5 shadow-2xl;
+  }
+  
+  .glass-panel {
+    @apply bg-white/[0.02] backdrop-blur-xl border border-white/5 hover:border-white/10 transition-all duration-500 hover:shadow-[0_0_30px_rgba(99,102,241,0.05)];
   }
 
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-linear-to-r from-indigo-400 to-violet-400;
+    @apply bg-clip-text text-transparent bg-linear-to-r from-indigo-400 via-violet-400 to-fuchsia-400;
+  }
+  
+  .gradient-text-subtle {
+    @apply bg-clip-text text-transparent bg-linear-to-r from-zinc-100 to-zinc-500;
   }
 
   .gradient-border {
@@ -68,11 +82,56 @@ body {
       linear-gradient(to right, var(--color-primary), #a855f7) border-box;
     border: 1px solid transparent;
   }
+  
+  .glow-effect {
+    position: relative;
+  }
+  
+  .glow-effect::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(to right, rgba(99,102,241,0.5), rgba(168,85,247,0.5));
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    filter: blur(8px);
+  }
+  
+  .glow-effect:hover::before {
+    opacity: 1;
+  }
+}
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes blob-slow {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(-50px, 30px) scale(1.2); }
+  66% { transform: translate(40px, -20px) scale(0.8); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(120,120,120,0.4) transparent;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -81,10 +140,10 @@ body {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: rgba(120,120,120,0.4);
+  background: rgba(255,255,255,0.1);
   border-radius: 999px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(120,120,120,0.7);
+  background: rgba(255,255,255,0.2);
 }

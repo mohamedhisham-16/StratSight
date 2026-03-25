@@ -1,46 +1,56 @@
 "use client";
 
-import { Search, Bell, User, ChevronDown, Command } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Bell, ChevronDown, Command } from "lucide-react";
 
 export function Navbar() {
+  const [userName, setUserName] = useState<string>("Haswanth Tamil");
+  const [initials, setInitials] = useState<string>("HT");
+
+  useEffect(() => {
+    const savedName = localStorage.getItem("stratsight_company_name");
+    if (savedName) {
+      setUserName(savedName);
+      setInitials(savedName.substring(0, 2).toUpperCase());
+    }
+  }, []);
+
   return (
-    <header className="h-16 border-b border-zinc-800 bg-zinc-950/50 backdrop-blur-md sticky top-0 z-30 px-8 flex items-center justify-between">
+    <header className="h-20 border-b border-white/5 bg-transparent backdrop-blur-3xl sticky top-0 z-30 px-8 flex items-center justify-between transition-all duration-500">
       <div className="flex items-center gap-4 w-1/3">
-        <div className="relative group w-full max-w-md">
-          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none group-focus-within:text-indigo-400 text-zinc-500 transition-colors">
-            <Search className="h-4 w-4" />
+        <div className="flex items-center gap-2 mr-4">
+          <div className="h-8 w-8 rounded-lg bg-linear-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <span className="text-white font-bold text-lg">S</span>
           </div>
-          <input
-            type="text"
-            className="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg py-2 pl-10 pr-12 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
-            placeholder="Search signals, competitors..."
-          />
-          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border border-zinc-700 bg-zinc-800 text-[10px] font-mono text-zinc-400">
-              <Command className="h-2.5 w-2.5" />
-              <span>K</span>
-            </div>
-          </div>
+          <span className="text-xl font-extrabold tracking-tight text-white hidden sm:block">
+            Strat<span className="text-indigo-400">Sight</span>
+          </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <button className="p-2 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-all relative group">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-indigo-500 border-2 border-zinc-950 group-hover:scale-110 transition-transform" />
-        </button>
+      <div className="flex items-center gap-5">
+        <div className="relative">
+          <div className="absolute -inset-2 bg-indigo-500/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+          <button title="Notifications" aria-label="Notifications" className="relative p-2.5 rounded-full text-zinc-400 hover:text-white glass-panel border-transparent hover:border-white/10 transition-all group">
+            <Bell className="h-5 w-5" />
+            <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-rose-500 border-2 border-[#0a0a0a] group-hover:scale-110 transition-transform shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
+          </button>
+        </div>
 
-        <div className="h-8 w-[1px] bg-zinc-800 mx-2" />
+        <div className="h-8 w-[1px] bg-white/10 mx-1" />
 
-        <button className="flex items-center gap-3 p-1 rounded-full text-zinc-400 hover:text-zinc-100 transition-all group">
-          <div className="h-8 w-8 rounded-full bg-linear-to-br from-indigo-500/20 to-violet-500/20 border border-zinc-800 flex items-center justify-center text-indigo-400 font-bold text-xs ring-2 ring-transparent group-hover:ring-indigo-500/20 transition-all">
-            HT
+        <button className="flex items-center gap-3 p-1.5 pr-3 rounded-full text-zinc-400 hover:text-white hover:bg-white/[0.04] border border-transparent hover:border-white/10 transition-all group">
+          <div className="relative">
+            <div className="absolute inset-0 bg-indigo-500/40 rounded-full blur-sm opacity-50 group-hover:opacity-100 transition-opacity" />
+            <div className="relative h-9 w-9 rounded-full bg-linear-to-br from-indigo-500/40 to-violet-500/40 border border-white/20 flex items-center justify-center text-white font-bold text-xs ring-2 ring-transparent group-hover:ring-indigo-500/30 transition-all shadow-lg backdrop-blur-md">
+              {initials}
+            </div>
           </div>
           <div className="text-left hidden sm:block">
-            <p className="text-sm font-semibold text-zinc-100 leading-none mb-1">Haswanth Tamil</p>
-            <p className="text-xs text-zinc-500 leading-none">Admin</p>
+            <p className="text-sm font-bold text-zinc-100 leading-tight group-hover:text-white transition-colors">{userName}</p>
+            <p className="text-[10px] font-semibold text-indigo-400 uppercase tracking-wider leading-none">Admin</p>
           </div>
-          <ChevronDown className="h-4 w-4 text-zinc-500 group-hover:text-zinc-300 transition-colors" />
+          <ChevronDown className="h-4 w-4 text-zinc-500 group-hover:text-zinc-300 transition-colors ml-1" />
         </button>
       </div>
     </header>
