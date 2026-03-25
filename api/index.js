@@ -318,7 +318,7 @@ app.post('/find-competitors', (req, res) => {
 
     const resultsCsvPath = path.join(currentDirPath, 'competitors.csv');
     const csvContent = enrichedMatches.map(item => {
-      const finalRow = [item.id, ...item.data, item.score];
+      const finalRow = [item.id, ...item.data, item.score, item.source];
       return finalRow.map(field => `"${(field || '').toString().replace(/"/g, '""')}"`).join(',');
     }).join('\n');
 

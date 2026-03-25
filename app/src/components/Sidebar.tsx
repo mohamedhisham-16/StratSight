@@ -84,32 +84,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-
-      <div className="p-6 mt-auto relative z-10">
-        <div className="relative p-5 rounded-2xl overflow-hidden group">
-          <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-md border border-white/10 rounded-2xl group-hover:border-indigo-500/30 transition-colors duration-500" />
-          
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-linear-to-r from-transparent via-indigo-500/50 to-transparent" />
-          <div className="absolute bottom-0 left-0 w-full h-[1px] bg-linear-to-r from-transparent via-violet-500/50 to-transparent" />
-          
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="h-4 w-4 text-indigo-400 animate-pulse" />
-              <span className="text-xs font-bold text-transparent bg-clip-text bg-linear-to-r from-indigo-400 to-violet-400 uppercase tracking-widest drop-shadow-sm">
-                Pro Plan active
-              </span>
-            </div>
-            <p className="text-xs text-zinc-400 leading-relaxed mb-4">
-              Unlock advanced AI insights and deep competitor tracking intelligence.
-            </p>
-            <button className="w-full py-2.5 text-xs font-bold bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-sm border border-white/10 transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-              Upgrade Now
-            </button>
-          </div>
-          
-          <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-indigo-500/20 rounded-full blur-2xl" />
-        </div>
-      </div>
     </div>
   );
 }
