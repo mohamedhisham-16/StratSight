@@ -3,6 +3,12 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const { parse } = require('csv-parse/sync');
+require('dotenv').config();
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -298,6 +304,12 @@ app.post('/find-competitors', (req, res) => {
       };
     });
 
+    // Sort by score descending and re-assign IDs
+    enrichedMatches.sort((a, b) => parseFloat(b.score || 0) - parseFloat(a.score || 0));
+    enrichedMatches.forEach((item, index) => {
+      item.id = index + 1;
+    });
+
     // Store results in db/current/competitors.csv
     const currentDirPath = path.join(__dirname, 'db', 'current');
     if (!fs.existsSync(currentDirPath)) {
@@ -332,7 +344,7 @@ app.post('/find-competitors', (req, res) => {
 });
 
 // Get competitors from current session
-app.get('/get-competitors', (req, res) => {
+app.post('/get-competitors', (req, res) => {
   const csvPath = path.join(__dirname, 'db', 'current', 'competitors.csv');
   
   try {
@@ -363,6 +375,82 @@ app.get('/get-competitors', (req, res) => {
   } catch (error) {
     console.error('Error reading current competitors:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Market Trends AI Endpoint
+app.post('/dashboard/market-trends', async (req, res) => {
+  const { id, companyName } = req.body;
+  const csvPath = path.join(__dirname, 'db', 'current', 'competitors.csv');
+
+  try {
+    if (!fs.existsSync(csvPath)) {
+      return res.status(404).json({ error: 'No search results found to analyze.' });
+    }
+
+    const fileContent = fs.readFileSync(csvPath, 'utf8');
+    const records = parse(fileContent, {
+      columns: false,
+      skip_empty_lines: true,
+      relax_column_count: true
+    });
+
+    let targetRow = null;
+    if (id) {
+      targetRow = records.find(row => row[0] == id);
+    } else if (companyName) {
+      targetRow = records.find(row => (row[1] || '').toLowerCase() === companyName.toLowerCase());
+    } else {
+      targetRow = records[0]; // Fallback to first row
+    }
+
+    if (!targetRow) {
+      return res.status(404).json({ error: 'Competitor not found in current session.' });
+    }
+
+    const domain = targetRow[2] || 'General';
+    const industry = targetRow[3] || 'Market';
+    const region = targetRow[4] || 'India';
+
+    const prompt = `
+      As a market research analyst, generate a realistic market trend JSON for the "${domain}" sector in the "${region}" region.
+      Target Industry: ${industry}.
+      
+      The JSON must strictly follow this structure:
+      {
+        "trendDirection": "BULLISH" | "BEARISH" | "NEUTRAL",
+        "percentageChange": number (e.g., 12.5),
+        "series": [
+          { "date": "YYYY-MM-DD", "volume": number, "isPredictive": boolean }
+        ]
+      }
+      
+      Generate a series of 37 data points: 
+      - The first 30 points are historical (isPredictive: false) for the last 30 days ending today (${new Date().toISOString().split('T')[0]}).
+      - The next 7 points are predictive (isPredictive: true) for the next 7 days.
+      
+      Ensure the numbers are realistic for this sector. Return ONLY the JSON.
+    `;
+
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    
+    // Clean JSON from code blocks if any
+    const cleanJson = responseText.replace(/```json|```/g, '').trim();
+    const trendData = JSON.parse(cleanJson);
+
+    res.json(trendData);
+  } catch (error) {
+    console.error('Error generating market trends:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate AI trends.',
+      details: error.message,
+      fallback: {
+        trendDirection: "NEUTRAL",
+        percentageChange: 0,
+        series: []
+      }
+    });
   }
 });
 

@@ -17,6 +17,25 @@ Body:
 
 ---
 
+## Market Trends (AI)
+
+```
+POST /dashboard/market-trends
+```
+
+Body:
+
+```json
+{
+  "id": 1,
+  "companyName": "Optional"
+}
+```
+
+Returns AI-generated market trends based on the competitor's domain and region.
+
+---
+
 ## Get Competitors
 
 ```
