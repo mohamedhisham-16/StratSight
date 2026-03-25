@@ -59,6 +59,11 @@ export function OverviewCards() {
         }
       })
       .catch(err => console.error("API error", err));
+
+    // Start background signal processing on dashboard load
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/process-signals-background`, {
+      method: 'POST'
+    }).catch(err => console.error("Background processing init error", err));
   }, []);
 
   const dynamicStats = [...stats];

@@ -494,14 +494,14 @@ app.get('/metrics/market-share', async (req, res) => {
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
-    
+
     const cleanJson = responseText.replace(/```json|```/g, '').trim();
     const marketShareData = JSON.parse(cleanJson);
 
     res.json(marketShareData);
   } catch (error) {
     console.error('Error generating market share:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to generate market share metrics.',
       details: error.message
     });
@@ -553,19 +553,73 @@ app.post('/signals', async (req, res) => {
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
-    
+
     const cleanJson = responseText.replace(/```json|```/g, '').trim();
     const signals = JSON.parse(cleanJson);
 
     res.json(signals);
   } catch (error) {
     console.error('Error generating news signals:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch or analyze news signals.',
       details: error.message,
       fallback: []
     });
   }
+});
+
+// Background Signal Processing Endpoint
+app.post('/process-signals-background', (req, res) => {
+  res.status(202).json({ message: 'Background processing started' });
+
+  (async () => {
+    const csvPath = path.join(__dirname, 'db', 'current', 'competitors.csv');
+    if (!fs.existsSync(csvPath)) return;
+
+    try {
+      const fileContent = fs.readFileSync(csvPath, 'utf8');
+      const records = parse(fileContent, {
+        columns: false,
+        skip_empty_lines: true,
+        relax_column_count: true
+      });
+
+      for (const row of records) {
+        const companyName = row[1];
+        if (!companyName) continue;
+
+        try {
+          const http = require('http');
+          const signalsData = await new Promise((resolve, reject) => {
+            const request = http.request({
+              hostname: 'localhost',
+              port: PORT,
+              path: `/signals?company_name=${encodeURIComponent(companyName)}`,
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            }, (response) => {
+              let data = '';
+              response.on('data', chunk => data += chunk);
+              response.on('end', () => resolve(JSON.parse(data)));
+            });
+            request.on('error', reject);
+            request.end();
+          });
+
+          const safeName = companyName.replace(/[^a-zA-Z0-9_\-]/g, '_');
+          const jsonPath = path.join(__dirname, 'db', 'current', `${safeName}.json`);
+          fs.writeFileSync(jsonPath, JSON.stringify(signalsData, null, 2));
+          console.log(`Saved background signals for ${companyName}`);
+        } catch (e) {
+          console.error(`Error processing signals for ${companyName}:`, e.message);
+        }
+      }
+    } catch (e) {
+      console.error('Error in background processing:', e);
+    }
+  })();
 });
 
 // Health endpoint
