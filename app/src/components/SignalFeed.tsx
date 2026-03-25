@@ -46,11 +46,17 @@ export function SignalFeed() {
   const [signals, setSignals] = useState<any[]>([]);
 
   useEffect(() => {
+    const cached = localStorage.getItem("stratsight_signals_cache");
+    if (cached) {
+      try { setSignals(JSON.parse(cached)); } catch(e){}
+    }
+
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/get-signals`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
           setSignals(data);
+          localStorage.setItem("stratsight_signals_cache", JSON.stringify(data));
         }
       })
       .catch(err => console.error("Error fetching signals:", err));
@@ -83,7 +89,9 @@ export function SignalFeed() {
               timestamp: formatTimeAgo(rawSignal.timestamp),
               importance: rawSignal.importance || 'Medium',
               icon: getIconForType(rawSignal.type),
-              color: getColorForImportance(rawSignal.importance)
+              color: getColorForImportance(rawSignal.importance),
+              company: rawSignal.company,
+              metadata: rawSignal.metadata
             };
             return (
               <div
@@ -119,6 +127,16 @@ export function SignalFeed() {
                     )}>
                       {signal.importance}
                     </span>
+                    {signal.company && (
+                      <span className="ml-3 text-[10px] font-bold text-indigo-300 mr-2 bg-white/5 px-2 py-0.5 rounded border border-white/5 max-w-[80px] truncate" title={signal.company}>
+                        {signal.company}
+                      </span>
+                    )}
+                    {signal.metadata && (
+                      <span className="text-[10px] font-medium text-zinc-400 italic mr-auto truncate max-w-[120px] hidden sm:block">
+                        {signal.metadata}
+                      </span>
+                    )}
                     <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-500 uppercase tracking-widest bg-white/5 px-2 py-1 rounded-md border border-white/5">
                       <Clock className="h-3.5 w-3.5 text-zinc-400" />
                       {signal.timestamp}

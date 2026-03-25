@@ -7,9 +7,22 @@ const RSSParser = require('rss-parser');
 require('dotenv').config();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+// Initialize Gemini AI with key looping for rate limits
+const geminiKeys = Object.keys(process.env)
+  .filter(k => k.startsWith('KEY_') || k.startsWith('GEMINI_API_KEY'))
+  .map(k => process.env[k]?.trim())
+  .filter(Boolean);
+
+let currentKeyIndex = 0;
+
+function getGenerativeModel() {
+  const defaultKey = process.env.GEMINI_API_KEY || 'DUMMY_KEY';
+  const key = geminiKeys.length > 0 ? geminiKeys[currentKeyIndex % geminiKeys.length] : defaultKey;
+  if (geminiKeys.length > 0) currentKeyIndex++;
+
+  const genAI = new GoogleGenerativeAI(key);
+  return genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+}
 
 const app = express();
 const parser = new RSSParser();
@@ -434,7 +447,7 @@ app.post('/dashboard/market-trends', async (req, res) => {
       Ensure the numbers are realistic for this sector. Return ONLY the JSON.
     `;
 
-    const result = await model.generateContent(prompt);
+    const result = await getGenerativeModel().generateContent(prompt);
     const responseText = result.response.text();
 
     // Clean JSON from code blocks if any
@@ -492,7 +505,7 @@ app.get('/metrics/market-share', async (req, res) => {
       ]
     `;
 
-    const result = await model.generateContent(prompt);
+    const result = await getGenerativeModel().generateContent(prompt);
     const responseText = result.response.text();
 
     const cleanJson = responseText.replace(/```json|```/g, '').trim();
@@ -543,6 +556,8 @@ app.post('/signals', async (req, res) => {
       - timestamp: The RFC3339 timestamp (e.g. 2026-03-25T15:30:00Z)
       - importance: "High", "Medium", or "Low"
       - type: A category like "pricing", "expansion", "funding", "product", "legal", or "partnership"
+      - company: "${company_name}"
+      - metadata: A 2-3 word high-level summary of the signal (e.g., "Pricing Shift", "Tier-2 Expansion")
       - if the number of news articles is less than 5, generate relevant news article for the same company and append it. total lenght should be minimum 5
       
       News Headlines:
@@ -551,8 +566,22 @@ app.post('/signals', async (req, res) => {
       Return ONLY the JSON array.
     `;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    const response = await fetch('http://localhost:11434/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'qwen',
+        prompt: prompt,
+        stream: false
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama generation failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    const responseText = result.response;
 
     const cleanJson = responseText.replace(/```json|```/g, '').trim();
     const signals = JSON.parse(cleanJson);
@@ -584,7 +613,8 @@ app.post('/process-signals-background', (req, res) => {
         relax_column_count: true
       });
 
-      for (const row of records) {
+      const firstFour = records.slice(0, 4);
+      for (const row of firstFour) {
         const companyName = row[1];
         if (!companyName) continue;
 
@@ -620,6 +650,56 @@ app.post('/process-signals-background', (req, res) => {
       console.error('Error in background processing:', e);
     }
   })();
+});
+
+// Chat Endpoint with Context Injection
+app.post('/chat', async (req, res) => {
+  const { message } = req.body;
+  if (!message) return res.status(400).json({ error: 'Message is required' });
+
+  try {
+    let contextStr = '';
+    const csvPath = path.join(__dirname, 'db', 'current', 'competitors.csv');
+
+    if (fs.existsSync(csvPath)) {
+      const fileContent = fs.readFileSync(csvPath, 'utf8');
+      const records = parse(fileContent, { columns: false, skip_empty_lines: true, relax_column_count: true });
+
+      for (const row of records) {
+        const companyName = row[1];
+        if (companyName && message.toLowerCase().includes(companyName.toLowerCase())) {
+          const safeName = companyName.replace(/[^a-zA-Z0-9_\-]/g, '_');
+          const jsonPath = path.join(__dirname, 'db', 'current', `${safeName}.json`);
+          if (fs.existsSync(jsonPath)) {
+            const signalData = fs.readFileSync(jsonPath, 'utf8');
+            contextStr += `\nRecent signals for ${companyName}:\n${signalData}\n`;
+          }
+        }
+      }
+    }
+
+    const prompt = `
+      You are StratBot AI, a strategic market intelligence assistant.
+      User message: "${message}"
+      
+      ${contextStr ? `The user mentioned competitors. Here is the latest context from our database:\n${contextStr}` : ''}
+      
+      Provide a concise, highly strategic, and data-driven response.
+
+      Constraints: Temperature is zero. there should be no inventing new things. do not come up with ideas that dont exist. stick to the boundaries of prompts.
+    `;
+
+    const result = await getGenerativeModel().generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.0 }
+    });
+    const reply = result.response.text();
+
+    res.json({ reply, hasContext: contextStr.length > 0 });
+  } catch (error) {
+    console.error('Chat error:', error);
+    res.status(500).json({ error: 'Failed to generate chat response' });
+  }
 });
 
 // Health endpoint
@@ -675,7 +755,7 @@ app.get('/get-signals', (req, res) => {
       }
     }
 
-    res.json(combined);
+    res.json(combined.slice(0, 4));
   } catch (error) {
     console.error('Error getting signals:', error);
     res.status(500).json({ error: 'Failed to retrieve signals.' });

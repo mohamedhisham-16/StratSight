@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  Send, 
-  Sparkles, 
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import {
+  Send,
+  Sparkles,
   MessageSquare,
   Bot,
   User,
@@ -12,17 +14,46 @@ import {
 import { cn } from "../lib/utils";
 
 export function ChatPanel({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: boolean) => void }) {
-  const [messages] = useState([
-    { role: "assistant", content: "Hello! I'm your StratSight assistant. How can we analyze Swiggy & Zomato's recent moves today?" },
-    { role: "user", content: "Should we matching Zomato's ₹6 platform fee increase?" },
-    { role: "assistant", content: "High sensitivity. Zomato's volume in Bengaluru dropped by 2% post-hike. Swiggy maintaining ₹5 fee could capture 1.5% marginal order share.", isAnalysis: true }
+  const [messages, setMessages] = useState<any[]>([
+    { role: "assistant", content: "Hello! I'm your StratSight assistant. How can I help you analyze the market today?" }
   ]);
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  const handleSend = async () => {
+    if (!input.trim() || isTyping) return;
+
+    const userMsg = input.trim();
+    setInput("");
+    setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
+    setIsTyping(true);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMsg })
+      });
+      const data = await res.json();
+
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: data.reply || "Sorry, I couldn't process that.",
+        isAnalysis: data.hasContext
+      }]);
+    } catch (err) {
+      console.error(err);
+      setMessages((prev) => [...prev, { role: "assistant", content: "Error connecting to server." }]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
   if (!isOpen) {
     return (
       <div className="fixed bottom-8 right-8 z-50 flex items-center justify-center group animate-in zoom-in duration-300">
         <div className="absolute inset-0 bg-indigo-500 rounded-full blur-xl opacity-40 group-hover:opacity-60 transition-opacity animate-pulse-slow" />
-        <button 
+        <button
           onClick={() => setIsOpen(true)}
           className="relative h-14 w-14 rounded-full bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-[0_0_30px_rgba(99,102,241,0.5)] flex items-center justify-center hover:scale-105 transition-transform border border-white/20"
         >
@@ -69,22 +100,42 @@ export function ChatPanel({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (
           )} style={{ animationDelay: `${i * 150}ms` }}>
             <div className={cn(
               "h-9 w-9 xl:w-10 xl:h-10 rounded-full flex shrink-0 items-center justify-center text-xs shadow-lg border",
-              msg.role === "assistant" 
-                ? "bg-white/5 border-white/10 text-indigo-400 shadow-indigo-500/10" 
+              msg.role === "assistant"
+                ? "bg-white/5 border-white/10 text-indigo-400 shadow-indigo-500/10"
                 : "bg-indigo-500 border-indigo-400 text-white shadow-indigo-500/30"
             )}>
               {msg.role === "assistant" ? <Bot className="h-5 w-5" /> : <User className="h-5 w-5" />}
             </div>
             <div className={cn(
               "p-4 rounded-2xl text-sm leading-relaxed shadow-lg backdrop-blur-md max-w-[85%]",
-              msg.role === "assistant" 
-                ? "bg-white/[0.04] text-zinc-200 border border-white/10 rounded-tl-sm relative" 
+              msg.role === "assistant"
+                ? "bg-white/[0.04] text-zinc-200 border border-white/10 rounded-tl-sm relative"
                 : "bg-linear-to-br from-indigo-500 to-indigo-600 text-white shadow-indigo-500/20 border border-indigo-400/30 rounded-tr-sm"
             )}>
               {msg.role === "assistant" && (
                 <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 blur-[20px] rounded-full pointer-events-none -z-10" />
               )}
-              {msg.content}
+              {typeof msg.content === 'string' ? (
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    p: ({node, ...props}) => <p className="mb-2 last:mb-0 leading-relaxed" {...props} />,
+                    strong: ({node, ...props}) => <strong className="font-extrabold text-white" {...props} />,
+                    ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props} />,
+                    ol: ({node, ...props}) => <ol className="list-decimal pl-4 mb-2 space-y-1" {...props} />,
+                    li: ({node, ...props}) => <li className="text-zinc-300" {...props} />,
+                    h1: ({node, ...props}) => <h1 className="text-base font-black text-white mb-2" {...props} />,
+                    h2: ({node, ...props}) => <h2 className="text-sm font-bold text-white mb-1.5" {...props} />,
+                    h3: ({node, ...props}) => <h3 className="text-xs font-bold text-white mb-1" {...props} />,
+                    code: ({node, ...props}) => <code className="bg-black/30 px-1.5 py-0.5 rounded text-indigo-300 font-mono text-[11px]" {...props} />,
+                    pre: ({node, ...props}) => <pre className="bg-black/40 p-3 rounded-xl overflow-x-auto border border-white/10 mb-2 mt-2 custom-scrollbar text-[11px]" {...props} />,
+                    blockquote: ({node, ...props}) => <blockquote className="border-l-2 border-indigo-500/50 pl-3 italic text-zinc-400 mb-2" {...props} />,
+                    a: ({node, ...props}) => <a className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2 decoration-indigo-400/30" {...props} />
+                  }}
+                >
+                  {msg.content}
+                </ReactMarkdown>
+              ) : msg.content}
               {msg.isAnalysis && (
                 <div className="mt-3 pt-3 border-t border-white/10 text-[10px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-1.5 bg-white/5 p-2 rounded-lg inline-flex">
                   <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse shadow-[0_0_8px_rgba(129,140,248,0.8)]" />
@@ -99,18 +150,31 @@ export function ChatPanel({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (
       <div className="p-5 border-t border-white/10 bg-white/[0.02] relative z-10 backdrop-blur-md">
         <div className="relative group">
           <div className="absolute inset-0 bg-white/5 rounded-2xl border border-white/10 group-focus-within:border-indigo-500/50 group-focus-within:bg-white/10 transition-all duration-300" />
-          <textarea 
+          <textarea
             rows={1}
-            placeholder="Ask AI about strategy..."
-            className="w-full relative z-10 bg-transparent py-4 pl-5 pr-14 text-sm text-white placeholder-zinc-500 focus:outline-hidden resize-none"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder={isTyping ? "AI is thinking..." : "Ask AI about strategy..."}
+            disabled={isTyping}
+            className="w-full relative z-10 bg-transparent py-4 pl-5 pr-14 text-sm text-white placeholder-zinc-500 focus:outline-hidden resize-none disabled:opacity-50"
           />
-          <button className="absolute right-2 top-2 z-20 h-10 w-10 rounded-xl bg-linear-to-r from-indigo-500 to-violet-600 text-white flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_15px_rgba(99,102,241,0.3)] active:scale-95 border border-white/20">
+          <button
+            onClick={handleSend}
+            disabled={isTyping || !input.trim()}
+            className="absolute right-2 top-2 z-20 h-10 w-10 rounded-xl bg-linear-to-r from-indigo-500 to-violet-600 text-white flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_15px_rgba(99,102,241,0.3)] active:scale-95 border border-white/20 disabled:opacity-50 disabled:hover:scale-100"
+          >
             <Send className="h-4 w-4 ml-0.5" />
           </button>
         </div>
         <p className="mt-3 text-[10px] text-zinc-500 text-center font-bold uppercase tracking-widest drop-shadow-sm flex items-center justify-center gap-1.5">
           <Sparkles className="h-3 w-3 text-indigo-400" />
-          Powered by GPT-4 & Core Data
+          Powered by Gemini AI & Core Data
         </p>
       </div>
     </div>
