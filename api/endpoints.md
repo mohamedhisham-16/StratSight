@@ -36,6 +36,16 @@ Returns AI-generated market trends based on the competitor's domain and region.
 
 ---
 
+## Market Share (AI)
+
+```
+GET /metrics/market-share
+```
+
+Returns AI-estimated market share for the identified competitors.
+
+---
+
 ## Get Competitors
 
 ```

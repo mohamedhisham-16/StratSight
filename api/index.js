@@ -454,6 +454,58 @@ app.post('/dashboard/market-trends', async (req, res) => {
   }
 });
 
+// Market Share Metrics AI Endpoint
+app.get('/metrics/market-share', async (req, res) => {
+  const csvPath = path.join(__dirname, 'db', 'current', 'competitors.csv');
+
+  try {
+    if (!fs.existsSync(csvPath)) {
+      return res.status(404).json({ error: 'No search results found to analyze.' });
+    }
+
+    const fileContent = fs.readFileSync(csvPath, 'utf8');
+    const records = parse(fileContent, {
+      columns: false,
+      skip_empty_lines: true,
+      relax_column_count: true
+    });
+
+    if (records.length === 0) {
+      return res.status(404).json({ error: 'No competitors found in current session.' });
+    }
+
+    // Extract names (Field 2) and sector info (Field 3 and 4)
+    const brandNames = records.map(row => row[1]);
+    const domain = records[0][2] || 'General';
+    const industry = records[0][3] || 'Market';
+
+    const prompt = `
+      As a market analyst, provide the estimated market share for these brands: ${brandNames.join(', ')} in the "${domain}" (${industry}) sector.
+      Include an 'Others' category for the remaining market share.
+      Ensure the total sharePercentage across all brands plus 'Others' sums exactly to 100.
+      
+      Return ONLY a JSON array of objects:
+      [
+        { "brand": "string", "sharePercentage": number }
+      ]
+    `;
+
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    
+    const cleanJson = responseText.replace(/```json|```/g, '').trim();
+    const marketShareData = JSON.parse(cleanJson);
+
+    res.json(marketShareData);
+  } catch (error) {
+    console.error('Error generating market share:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate market share metrics.',
+      details: error.message
+    });
+  }
+});
+
 // Health endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
