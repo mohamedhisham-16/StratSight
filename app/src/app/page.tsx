@@ -1,8 +1,8 @@
-import { OverviewCards } from "@/components/OverviewCards";
-import { MarketTrendsChart } from "@/components/MarketTrendsChart";
-import { CompetitorCard } from "@/components/CompetitorCard";
-import { BrandPerformance } from "@/components/BrandPerformance";
-import { SignalFeed } from "@/components/SignalFeed";
+import { OverviewCards } from "../components/OverviewCards";
+import { MarketTrendsChart } from "../components/MarketTrendsChart";
+import { CompetitorCard } from "../components/CompetitorCard";
+import { BrandPerformance } from "../components/BrandPerformance";
+import { SignalFeed } from "../components/SignalFeed";
 import { ArrowUpRight } from "lucide-react";
 
 export default function Home() {

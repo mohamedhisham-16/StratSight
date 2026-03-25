@@ -9,7 +9,7 @@ import {
   User,
   Minus
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils";
 
 export function ChatPanel() {
   const [isOpen, setIsOpen] = useState(true);
