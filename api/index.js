@@ -636,6 +636,52 @@ app.get('/', (req, res) => {
   res.send('StratSight API is running.');
 });
 
+// Get combined and rotated signals
+app.get('/get-signals', (req, res) => {
+  const currentDir = path.join(__dirname, 'db', 'current');
+  try {
+    if (!fs.existsSync(currentDir)) {
+      return res.json([]);
+    }
+
+    const files = fs.readdirSync(currentDir).filter(f => f.endsWith('.json'));
+
+    // Read all JSON arrays
+    const allSignalsArrays = [];
+    for (const file of files) {
+      try {
+        const content = fs.readFileSync(path.join(currentDir, file), 'utf8');
+        const data = JSON.parse(content);
+        if (Array.isArray(data)) {
+          allSignalsArrays.push(data);
+        }
+      } catch (e) {
+        console.error(`Error reading ${file}:`, e);
+      }
+    }
+
+    // Interleave (rotate) signals
+    const combined = [];
+    let maxLen = 0;
+    allSignalsArrays.forEach(arr => {
+      if (arr.length > maxLen) maxLen = arr.length;
+    });
+
+    for (let i = 0; i < maxLen; i++) {
+      for (const arr of allSignalsArrays) {
+        if (i < arr.length) {
+          combined.push(arr[i]);
+        }
+      }
+    }
+
+    res.json(combined);
+  } catch (error) {
+    console.error('Error getting signals:', error);
+    res.status(500).json({ error: 'Failed to retrieve signals.' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
   console.log('CORS is enabled for all origins.');
