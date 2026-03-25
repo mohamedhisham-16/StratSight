@@ -1,14 +1,107 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { useState, useEffect, useRef } from 'react';
 
 const CHART_COLORS = ['#f97316', '#f43f5e', '#eab308', '#a1a1aa', '#3b82f6', '#8b5cf6'];
 
 export function BrandPerformance() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const [data, setData] = useState([
     { name: 'Loading...', value: 100, color: '#a1a1aa' }
   ]);
+
+  // Canvas drawing effect, robustly responding to window resize and CSS flex adjustments
+  useEffect(() => {
+    if (!canvasRef.current || !containerRef.current) return;
+
+    let animationFrameId: number;
+    let currentAnimateProgress = 0.0;
+
+    const drawChart = () => {
+      const canvas = canvasRef.current;
+      const container = containerRef.current;
+      if (!canvas || !container) return;
+
+      const { width, height } = container.getBoundingClientRect();
+      const ctx = canvas.getContext('2d');
+      if (!ctx || width === 0 || height === 0) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, width, height);
+
+      const cx = width / 2;
+      const cy = height / 2;
+      const radius = Math.min(cx, cy) * 0.90;
+      const innerRadius = radius * 0.75;
+
+      const total = data.reduce((acc, item) => acc + (item.value || 0), 0) || 1;
+      let startAngle = -Math.PI / 2;
+      const gap = 0.08;
+
+      const progress = Math.min(1, currentAnimateProgress);
+
+      data.forEach((item) => {
+        const itemVal = item.value || 0;
+        // Don't draw slices with minimal representation in view
+        if (itemVal <= 0) return;
+
+        const sliceAngle = (itemVal / total) * 2 * Math.PI * progress;
+
+        // Safety guard against negative angle sweeps if gap is too big for the slice
+        if (sliceAngle <= gap) {
+          startAngle += sliceAngle;
+          return;
+        }
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, startAngle + gap / 2, startAngle + sliceAngle - gap / 2);
+        ctx.arc(cx, cy, innerRadius, startAngle + sliceAngle - gap / 2, startAngle + gap / 2, true);
+        ctx.closePath();
+
+        // Add drop shadow simulating filter: drop-shadow and outer glows
+        ctx.shadowColor = item.color;
+        ctx.shadowBlur = Math.min(15, cx * 0.1);
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+
+        ctx.fillStyle = item.color;
+        ctx.fill();
+
+        // Reset shadow
+        ctx.shadowBlur = 0;
+        startAngle += sliceAngle;
+      });
+
+      // Animate opening rotation
+      if (currentAnimateProgress < 1) {
+        currentAnimateProgress += 0.05;
+        animationFrameId = requestAnimationFrame(drawChart);
+      }
+    };
+
+    // Trigger entrance animation
+    animationFrameId = requestAnimationFrame(drawChart);
+
+    // Using ResizeObserver effectively bypasses all width(-1) error states
+    const observer = new ResizeObserver(() => {
+      // Once animation finishes, ResizeObserver seamlessly handles normal flexbox repaints
+      if (currentAnimateProgress >= 1) requestAnimationFrame(drawChart);
+    });
+    observer.observe(containerRef.current);
+
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [data]);
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/metrics/market-share`)
@@ -36,51 +129,21 @@ export function BrandPerformance() {
         </div>
       </div>
 
-      <div className="flex-1 min-h-[220px] relative z-10 flex items-center justify-center">
+      <div
+        ref={containerRef}
+        className="flex-1 min-h-[220px] relative z-10 flex items-center justify-center p-4"
+      >
         {/* Glow behind chart */}
         <div className="absolute inset-0 flex items-center justify-center -z-10 pointer-events-none">
           <div className="w-32 h-32 bg-orange-500/10 blur-[50px] rounded-full animate-blob mix-blend-screen" />
           <div className="w-32 h-32 bg-rose-500/10 blur-[50px] rounded-full animate-blob-slow mix-blend-screen" />
         </div>
 
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius={70}
-              outerRadius={95}
-              paddingAngle={8}
-              dataKey="value"
-              stroke="none"
-              animationBegin={0}
-              animationDuration={2000}
-              animationEasing="ease-out"
-              cornerRadius={10}
-            >
-              {data.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={entry.color}
-                  style={{ filter: `drop-shadow(0px 0px 8px ${entry.color}40)` }}
-                />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'rgba(10, 10, 10, 0.8)',
-                backdropFilter: 'blur(16px)',
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '16px',
-                fontSize: '12px',
-                color: '#fafafa',
-                boxShadow: '0 0 20px rgba(0,0,0,0.5)'
-              }}
-              itemStyle={{ color: '#fafafa', fontWeight: 'bold' }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+        {/* Swapped SVG PieChart with a pure scalable Canvas node */}
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full pointer-events-none"
+        />
 
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none drop-shadow-lg">
           <span className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-b from-white to-zinc-400 leading-none">
