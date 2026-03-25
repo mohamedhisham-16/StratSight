@@ -73,6 +73,26 @@ app.get('/find-competitors', (req, res) => {
       return domainMatch && regionMatch;
     });
 
+    // Store results in db/current/competitors.csv
+    const currentDirPath = path.join(__dirname, 'db', 'current');
+    if (!fs.existsSync(currentDirPath)) {
+      fs.mkdirSync(currentDirPath, { recursive: true });
+    }
+
+    const resultsCsvPath = path.join(currentDirPath, 'competitors.csv');
+    const csvContent = matches.map((row, index) => {
+    const id = index + 1;
+
+    // Add id at the beginning of each row
+    const newRow = [id, ...row];
+
+    return newRow
+      .map(field => `"${(field || '').toString().replace(/"/g, '""')}"`)
+      .join(',');
+  }).join('\n');
+
+    fs.writeFileSync(resultsCsvPath, csvContent, 'utf8');
+
     res.json({
       count: matches.length,
       results: matches.map(row => ({
@@ -85,6 +105,39 @@ app.get('/find-competitors', (req, res) => {
     });
   } catch (error) {
     console.error('Error processing competitors:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get competitors from current session
+app.get('/get-competitors', (req, res) => {
+  const csvPath = path.join(__dirname, 'db', 'current', 'competitors.csv');
+  
+  try {
+    if (!fs.existsSync(csvPath)) {
+      return res.json({ count: 0, results: [] });
+    }
+
+    const fileContent = fs.readFileSync(csvPath, 'utf8');
+    const records = parse(fileContent, {
+      columns: false,
+      skip_empty_lines: true,
+      relax_column_count: true
+    });
+
+    res.json({
+      count: records.length,
+      results: records.map(row => ({
+        id: row[0],
+        name: row[1],
+        domain: row[2],
+        industry: row[3],
+        region: row[4],
+        rating: row[5]
+      }))
+    });
+  } catch (error) {
+    console.error('Error reading current competitors:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -17,6 +17,16 @@ payload:
 
 ---
 
+## Get Competitors
+
+```
+GET /get-competitors
+```
+
+Returns the stored competitors from the last search.
+
+---
+
 ## Health
 
 ```
