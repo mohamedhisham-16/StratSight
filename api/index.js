@@ -344,7 +344,7 @@ app.post('/find-competitors', (req, res) => {
 });
 
 // Get competitors from current session
-app.post('/get-competitors', (req, res) => {
+app.get('/get-competitors', (req, res) => {
   const csvPath = path.join(__dirname, 'db', 'current', 'competitors.csv');
 
   try {
