@@ -543,6 +543,7 @@ app.post('/signals', async (req, res) => {
       - timestamp: The RFC3339 timestamp (e.g. 2026-03-25T15:30:00Z)
       - importance: "High", "Medium", or "Low"
       - type: A category like "pricing", "expansion", "funding", "product", "legal", or "partnership"
+      - if the number of news articles is less than 5, generate relevant news article for the same company and append it. total lenght should be minimum 5
       
       News Headlines:
       ${newsItems.map(ni => `- ${ni.title} (Published: ${ni.pubDate})`).join('\n')}

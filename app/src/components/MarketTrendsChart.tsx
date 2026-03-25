@@ -107,7 +107,7 @@ export function MarketTrendsChart() {
         {isLoading ? (
           <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-indigo-400 gap-3">
             <span className="h-5 w-5 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-            Generating AI Forecast...
+            Fetching market data...
           </div>
         ) : (
           <>
