@@ -46,6 +46,16 @@ Returns AI-estimated market share for the identified competitors.
 
 ---
 
+## News Signals (AI)
+
+```
+GET /signals?company_name=Zomato
+```
+
+Fetches recent news (past 3 months) for the specified company and classifies them using AI.
+
+---
+
 ## Get Competitors
 
 ```

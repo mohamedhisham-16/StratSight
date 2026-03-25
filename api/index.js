@@ -3,6 +3,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const { parse } = require('csv-parse/sync');
+const RSSParser = require('rss-parser');
 require('dotenv').config();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
@@ -11,6 +12,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 const app = express();
+const parser = new RSSParser();
 const PORT = process.env.PORT || 5000;
 
 // Scoring Configurations
@@ -502,6 +504,65 @@ app.get('/metrics/market-share', async (req, res) => {
     res.status(500).json({ 
       error: 'Failed to generate market share metrics.',
       details: error.message
+    });
+  }
+});
+
+// Signals RSS & AI Endpoint
+app.post('/signals', async (req, res) => {
+  const company_name = req.query.company_name || (req.body && req.body.company_name);
+
+  if (!company_name) {
+    return res.status(400).json({ error: 'company_name query parameter is required.' });
+  }
+
+  try {
+    // 1. Fetch Google News RSS for the past 3 months
+    const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(company_name)}+when:3m&hl=en-IN&gl=IN&ceid=IN:en`;
+    const feed = await parser.parseURL(rssUrl);
+
+    // 2. Limit to top 10 items
+    const newsItems = feed.items.slice(0, 10).map(item => ({
+      title: item.title,
+      pubDate: item.pubDate,
+      link: item.link
+    }));
+
+    if (newsItems.length === 0) {
+      return res.json([]);
+    }
+
+    // 3. Use Gemini to structure and classify signals
+    const prompt = `
+      As a business intelligence analyst, analyze these recent news headlines for the brand "${company_name}".
+      Convert them into a structured "signals" JSON array.
+      
+      For each news item, provide:
+      - id: "sig_" followed by a short hash or number
+      - title: A concise, cleaned version of the headline
+      - timestamp: The RFC3339 timestamp (e.g. 2026-03-25T15:30:00Z)
+      - importance: "High", "Medium", or "Low"
+      - type: A category like "pricing", "expansion", "funding", "product", "legal", or "partnership"
+      
+      News Headlines:
+      ${newsItems.map(ni => `- ${ni.title} (Published: ${ni.pubDate})`).join('\n')}
+      
+      Return ONLY the JSON array.
+    `;
+
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    
+    const cleanJson = responseText.replace(/```json|```/g, '').trim();
+    const signals = JSON.parse(cleanJson);
+
+    res.json(signals);
+  } catch (error) {
+    console.error('Error generating news signals:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch or analyze news signals.',
+      details: error.message,
+      fallback: []
     });
   }
 });
