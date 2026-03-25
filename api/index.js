@@ -7,6 +7,186 @@ const { parse } = require('csv-parse/sync');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Scoring Configurations
+const SCORING_CONFIG_LISTED = {
+  DOMAIN_OVERLAP: { CATEGORY: 0.2, SUB_CATEGORY: 0.15, ADJACENT: 0.08 },
+  FINANCIAL: { POSITIVE: 0.1, IMPROVING: 0.08, DEEP_LOSS: -0.06, REVENUE: 0.09, FUNDRAISE: 0.07, PROFITABILITY: 0.06 },
+  PROXIMITY: { SAME_CITY: 0.07, SAME_REGION: 0.04 },
+  CONFIDENCE: { COMPLETENESS: 0.06, SPARSE: -0.04 }
+};
+
+const SCORING_CONFIG_NON_LISTED = {
+  DOMAIN_OVERLAP: { CATEGORY: 0.18, ADJACENT: 0.07 },
+  ANNUAL: { STRONG_POS: 0.14, MOD_POS: 0.1, NEAR_BE: 0.06, DEEP_LOSS: -0.07 },
+  QUARTERLY: { POSITIVE: 0.1, IMPROVING: 0.07, DECLINING: -0.04 },
+  NEWS_MOMENTUM: { GROWTH: 0.09, FUNDRAISE: 0.08, CASHFLOW: 0.06, NARROWING: 0.05 },
+  CONFIDENCE: { FULL: 0.05, SPARSE: -0.03 }
+};
+
+const ADJACENCY_MAP = {
+  'EV Mobility': ['EV Infra'],
+  'EV Infra': ['EV Mobility'],
+  'Aerospace': ['Defense'],
+  'Defense': ['Aerospace'],
+  'Logistics': ['E-commerce'],
+  'E-commerce': ['Logistics'],
+  'HealthTech': ['InsurTech'],
+  'InsurTech': ['HealthTech'],
+  'FinTech': ['SaaS'],
+  'SaaS': ['FinTech']
+};
+
+const METRO_CLUSTERS = {
+  'NCR': ['Gurugram', 'Noida', 'Delhi', 'New Delhi', 'Greater Noida'],
+  'Mumbai': ['Mumbai', 'Navi Mumbai', 'Thane'],
+  'Bangalore': ['Bangalore', 'Bengaluru'],
+  'Hyderabad': ['Hyderabad'],
+  'Chennai': ['Chennai'],
+  'Pune': ['Pune']
+};
+
+// Helper: Get metro cluster
+function getMetroRegion(locationStr) {
+  if (!locationStr) return null;
+  const city = locationStr.split(',')[0].trim();
+  for (const [region, cities] of Object.entries(METRO_CLUSTERS)) {
+    if (cities.some(c => c.toLowerCase() === city.toLowerCase())) return region;
+  }
+  return city;
+}
+
+// Helper: Parse profit percentage
+function parseProfit(str) {
+  if (!str || str === 'N/A') return null;
+  const match = str.match(/-?\d+(\.\d+)?/);
+  return match ? parseFloat(match[0]) : null;
+}
+
+// Helper: Keyword matching
+function hasKeywords(text, keywords) {
+  if (!text) return false;
+  return keywords.some(k => text.toLowerCase().includes(k.toLowerCase()));
+}
+
+// Fallback Function: Basic scoring if performance data is missing
+function calculateFallbackScore(competitor, targetDomain, targetRegion) {
+  let score = 0;
+  // Domain Match (using source fields)
+  if (getSimilarity(targetDomain, competitor[1] || '') >= 0.8) score += 0.3;
+  if (getSimilarity(targetDomain, competitor[2] || '') >= 0.8) score += 0.2;
+  
+  // Region Match
+  if (targetRegion && getSimilarity(targetRegion, competitor[3] || '') >= 0.8) score += 0.1;
+  
+  // Rating influence
+  const rating = parseFloat(competitor[4]) || 0;
+  score += (rating / 10) * 0.2;
+
+  return Math.min(score, 1).toFixed(2);
+}
+
+// Algorithm: Listed Company Competitor Scoring
+function calculateListedScore(comp, perfData, targetDomain, targetRegion) {
+  let score = 0;
+  const perfSector = perfData.Sector || '';
+  const perfSubsector = perfData.Subsector || '';
+
+  if (perfSector.toLowerCase() === targetDomain.toLowerCase()) {
+    score += SCORING_CONFIG_LISTED.DOMAIN_OVERLAP.CATEGORY;
+  } else if (ADJACENCY_MAP[targetDomain] && ADJACENCY_MAP[targetDomain].includes(perfSector)) {
+    score += SCORING_CONFIG_LISTED.DOMAIN_OVERLAP.ADJACENT;
+  }
+  
+  if (perfSubsector && getSimilarity(targetDomain, perfSubsector) >= 0.8) {
+    score += SCORING_CONFIG_LISTED.DOMAIN_OVERLAP.SUB_CATEGORY;
+  }
+
+  const annualProfit = parseProfit(perfData['Last Annual Profit %']);
+  const monthNews = perfData['Last Month News/Profit'] || '';
+
+  if (annualProfit !== null) {
+    if (annualProfit > 0) score += SCORING_CONFIG_LISTED.FINANCIAL.POSITIVE;
+    if (annualProfit < -80) score += SCORING_CONFIG_LISTED.FINANCIAL.DEEP_LOSS;
+  }
+
+  if (hasKeywords(monthNews, ['narrowed', 'improved', 'reduced loss'])) score += SCORING_CONFIG_LISTED.FINANCIAL.IMPROVING;
+  if (hasKeywords(monthNews, ['Rs 50 Cr', 'USD 10M', '$10M', 'revenue jumped'])) score += SCORING_CONFIG_LISTED.FINANCIAL.REVENUE;
+  if (hasKeywords(monthNews, ['raised', 'funding', 'Series', 'million', '$', 'round'])) score += SCORING_CONFIG_LISTED.FINANCIAL.FUNDRAISE;
+  if (hasKeywords(monthNews, ['profitable', 'EBITDA positive', 'cash flow positive'])) score += SCORING_CONFIG_LISTED.FINANCIAL.PROFITABILITY;
+
+  if (targetRegion) {
+    const compLocation = perfData.Location || comp[3] || '';
+    const compCity = compLocation.split(',')[0].trim();
+    const targetCity = targetRegion.split(',')[0].trim();
+
+    if (compCity.toLowerCase() === targetCity.toLowerCase()) {
+      score += SCORING_CONFIG_LISTED.PROXIMITY.SAME_CITY;
+    } else {
+      const compReg = getMetroRegion(compLocation);
+      const targetRegCluster = getMetroRegion(targetRegion);
+      if (compReg && targetRegCluster && compReg === targetRegCluster) {
+        score += SCORING_CONFIG_LISTED.PROXIMITY.SAME_REGION;
+      }
+    }
+  }
+
+  const fields = [perfData['Last Quarter Profit %'], perfData['Last Annual Profit %'], monthNews];
+  const nonNullCount = fields.filter(f => f && f !== 'N/A').length;
+  if (nonNullCount === 3) score += SCORING_CONFIG_LISTED.CONFIDENCE.COMPLETENESS;
+  if (nonNullCount === 1) score += SCORING_CONFIG_LISTED.CONFIDENCE.SPARSE;
+
+  return Math.max(0, Math.min(1, score)).toFixed(2);
+}
+
+// Algorithm: Non-Listed Company Competitor Scoring
+function calculateNonListedScore(comp, perfData, targetDomain) {
+  let score = 0;
+  const perfCategory = perfData.Category || '';
+
+  // Domain Overlap
+  if (perfCategory.toLowerCase() === targetDomain.toLowerCase()) {
+    score += SCORING_CONFIG_NON_LISTED.DOMAIN_OVERLAP.CATEGORY;
+  } else if (ADJACENCY_MAP[targetDomain] && ADJACENCY_MAP[targetDomain].includes(perfCategory)) {
+    score += SCORING_CONFIG_NON_LISTED.DOMAIN_OVERLAP.ADJACENT;
+  }
+
+  // Annual Health
+  const annualProfit = parseProfit(perfData['Last Annual Profit %']);
+  if (annualProfit !== null) {
+    if (annualProfit > 20) score += SCORING_CONFIG_NON_LISTED.ANNUAL.STRONG_POS;
+    else if (annualProfit >= 0) score += SCORING_CONFIG_NON_LISTED.ANNUAL.MOD_POS;
+    else if (annualProfit >= -5) score += SCORING_CONFIG_NON_LISTED.ANNUAL.NEAR_BE;
+    else if (annualProfit < -40) score += SCORING_CONFIG_NON_LISTED.ANNUAL.DEEP_LOSS;
+  }
+
+  // Quarterly Momentum
+  const quarterProfit = parseProfit(perfData['Last Quarter Profit %']);
+  const monthNews = perfData['Last Month Profit (News/Notes)'] || '';
+  
+  if (quarterProfit !== null) {
+    if (quarterProfit > 0) score += SCORING_CONFIG_NON_LISTED.QUARTERLY.POSITIVE;
+    if (quarterProfit > (annualProfit || -Infinity) || hasKeywords(monthNews, ['narrowed', 'improved', 'reduced'])) {
+      score += SCORING_CONFIG_NON_LISTED.QUARTERLY.IMPROVING;
+    } else if (annualProfit !== null && quarterProfit < annualProfit && !hasKeywords(monthNews, ['narrowed', 'improved', 'reduced'])) {
+      score += SCORING_CONFIG_NON_LISTED.QUARTERLY.DECLINING;
+    }
+  }
+
+  // News Momentum
+  if (hasKeywords(monthNews, ['record', '5x growth', 'jumped', 'quarterly profit', 'highest ever'])) score += SCORING_CONFIG_NON_LISTED.NEWS_MOMENTUM.GROWTH;
+  if (hasKeywords(monthNews, ['raised', 'funding', 'Series', 'IPO', 'listed', '$'])) score += SCORING_CONFIG_NON_LISTED.NEWS_MOMENTUM.FUNDRAISE;
+  if (hasKeywords(monthNews, ['cash flow positive', 'operating profit', 'EBITDA positive'])) score += SCORING_CONFIG_NON_LISTED.NEWS_MOMENTUM.CASHFLOW;
+  if (hasKeywords(monthNews, ['loss narrowed', 'loss reduced', 'loss declined'])) score += SCORING_CONFIG_NON_LISTED.NEWS_MOMENTUM.NARROWING;
+
+  // Confidence
+  const fields = [perfData['Last Quarter Profit %'], perfData['Last Annual Profit %'], monthNews];
+  const nonNullCount = fields.filter(f => f && f !== 'N/A').length;
+  if (nonNullCount === 3) score += SCORING_CONFIG_NON_LISTED.CONFIDENCE.FULL;
+  if (nonNullCount === 1) score += SCORING_CONFIG_NON_LISTED.CONFIDENCE.SPARSE;
+
+  return Math.max(0, Math.min(1, score)).toFixed(2);
+}
+
 // Fuzzy matching: Dice's Coefficient
 function getSimilarity(s1, s2) {
   if (!s1 || !s2) return 0;
@@ -36,8 +216,8 @@ app.use(cors({
 app.use(express.json());
 
 // Find competitors endpoint
-app.get('/find-competitors', (req, res) => {
-  const { domain, region } = req.query;
+app.post('/find-competitors', (req, res) => {
+  const { domain, region } = req.body;
   
   if (!domain) {
     return res.status(400).json({ error: 'Domain is required' });
@@ -57,6 +237,20 @@ app.get('/find-competitors', (req, res) => {
       relax_column_count: true
     });
 
+    // Load performance data
+    const listedPath = path.join(__dirname, 'db', 'scrap', 'listed_companies_performance.csv');
+    const nonListedPath = path.join(__dirname, 'db', 'scrap', 'nonlisted_major_companies.csv');
+    
+    let listedData = [];
+    let nonListedData = [];
+
+    if (fs.existsSync(listedPath)) {
+      listedData = parse(fs.readFileSync(listedPath, 'utf8'), { columns: true, skip_empty_lines: true });
+    }
+    if (fs.existsSync(nonListedPath)) {
+      nonListedData = parse(fs.readFileSync(nonListedPath, 'utf8'), { columns: true, skip_empty_lines: true });
+    }
+
     const threshold = 0.8;
     const matches = records.filter(row => {
       // Row structure: [Name, Domain/Service, Industry, Region/Location, Rating]
@@ -73,6 +267,37 @@ app.get('/find-competitors', (req, res) => {
       return domainMatch && regionMatch;
     });
 
+    // Enrich results with scores
+    const enrichedMatches = matches.map((row, index) => {
+      const companyName = row[0];
+      let score = null;
+      let source = 'fallback';
+
+      // 1. Try Listed
+      const listedMatch = listedData.find(d => (d.Company || '').toLowerCase() === companyName.toLowerCase());
+      if (listedMatch) {
+        score = calculateListedScore(row, listedMatch, domain, region);
+        source = 'listed';
+      } else {
+        // 2. Try Non-Listed
+        const nonListedMatch = nonListedData.find(d => (d['Company Name'] || '').toLowerCase() === companyName.toLowerCase());
+        if (nonListedMatch) {
+          score = calculateNonListedScore(row, nonListedMatch, domain);
+          source = 'non-listed';
+        } else {
+          // 3. Fallback
+          score = calculateFallbackScore(row, domain, region);
+        }
+      }
+
+      return {
+        id: index + 1,
+        data: row,
+        score: score,
+        source: source
+      };
+    });
+
     // Store results in db/current/competitors.csv
     const currentDirPath = path.join(__dirname, 'db', 'current');
     if (!fs.existsSync(currentDirPath)) {
@@ -80,27 +305,24 @@ app.get('/find-competitors', (req, res) => {
     }
 
     const resultsCsvPath = path.join(currentDirPath, 'competitors.csv');
-    const csvContent = matches.map((row, index) => {
-    const id = index + 1;
-
-    // Add id at the beginning of each row
-    const newRow = [id, ...row];
-
-    return newRow
-      .map(field => `"${(field || '').toString().replace(/"/g, '""')}"`)
-      .join(',');
-  }).join('\n');
+    const csvContent = enrichedMatches.map(item => {
+      const finalRow = [item.id, ...item.data, item.score];
+      return finalRow.map(field => `"${(field || '').toString().replace(/"/g, '""')}"`).join(',');
+    }).join('\n');
 
     fs.writeFileSync(resultsCsvPath, csvContent, 'utf8');
 
     res.json({
-      count: matches.length,
-      results: matches.map(row => ({
-        name: row[0],
-        domain: row[1],
-        industry: row[2],
-        region: row[3],
-        rating: row[4]
+      count: enrichedMatches.length,
+      results: enrichedMatches.map(item => ({
+        id: item.id,
+        name: item.data[0],
+        domain: item.data[1],
+        industry: item.data[2],
+        region: item.data[3],
+        rating: item.data[4],
+        score: item.score,
+        source: item.source
       }))
     });
   } catch (error) {
@@ -133,7 +355,9 @@ app.get('/get-competitors', (req, res) => {
         domain: row[2],
         industry: row[3],
         region: row[4],
-        rating: row[5]
+        rating: row[5],
+        score: row[6],
+        source: row[7] || 'unknown'
       }))
     });
   } catch (error) {

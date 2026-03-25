@@ -3,10 +3,10 @@
 ## Find Competitors
 
 ```
-GET /find-competitors?domain=EV%20Mobility&region=Bangalore
+POST /find-competitors
 ```
 
-payload:
+Body:
 
 ```
 {

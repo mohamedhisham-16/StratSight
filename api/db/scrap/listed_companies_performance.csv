@@ -1,0 +1,141 @@
+Company,Sector,Subsector,Location,Rating,Last Quarter Profit %,Last Month News/Profit,Last Annual Profit %
+Tata Motors EV,EV Mobility,Automotive,"Mumbai, India",8,10%,N/A,15%
+Mahindra Electric,EV Mobility,Automotive,"Bangalore, India",7,10%,N/A,15%
+Exicom Tele-Systems,EV Infra,Charging,"Gurugram, India",5,10%,N/A,15%
+Hala Mobility,EV Mobility,Ride-Sharing,"Hyderabad, India",2,10%,N/A,15%
+ABB India,EV Infra,MNC/Charging,"Bangalore, India",9,10%,N/A,15%
+Schneider Electric India,EV Infra,MNC/Power,"Gurugram, India",9,10%,N/A,15%
+HAL,Aerospace,PSU/Aircraft,"Bangalore, India",9,9%,Record exports,15%
+BEL,Defense,PSU/Electronics,"Bangalore, India",8,40%,Order book surge,28%
+Bharat Forge,Defense,Artillery/Land,"Pune, India",7,35%,Record Orders,25%
+BDL,Defense,PSU/Missiles,"Hyderabad, India",7,35%,Record Orders,25%
+Mazagon Dock,Defense,PSU/Shipbuilding,"Mumbai, India",7,77%,Vessel delivery,83%
+L&T Defence,Defense,Systems/Naval,"Mumbai, India",8,35%,Record Orders,25%
+Data Patterns,Defense,Electronics,"Chennai, India",5,53%,Positive news,32%
+Zen Technologies,Defense,Simulators,"Hyderabad, India",4,306%,Defense demand,150%+
+Astra Microwave,Defense,Components,"Hyderabad, India",5,35%,Record Orders,25%
+Bellatrix Aerospace,Aerospace,Propulsion,"Bangalore, India",3,10%,N/A,15%
+Delhivery,Logistics,E-comm Logistics,"Gurugram, India",7,Profit (11Cr),Logistics boom,N/A
+Blue Dart Express,Logistics,Courier/Air,"Mumbai, India",7,10%,N/A,15%67
+Container Corp (CONCOR),Logistics,PSU/Freight,"New Delhi, India",8,10%,N/A,15%
+Allcargo Logistics,Logistics,Multimodal,"Mumbai, India",7,10%,N/A,15%
+Gati,Logistics,Express,"Hyderabad, India",6,10%,N/A,15%
+Mahindra Logistics,Logistics,3PL,"Mumbai, India",6,10%,N/A,15%
+TCI Express,Logistics,Express,"Gurugram, India",6,10%,N/A,15%
+ReNew Power,Renewables,Utility Scale,"Gurugram, India",9,50%,Expansion,100%+
+Adani Green Energy,Renewables,Utility Scale,"Ahmedabad, India",9,148%,New capacity news,218%
+Tata Power Renewable,Renewables,Utility Scale,"Mumbai, India",9,50%,Expansion,100%+
+JSW Energy,Renewables,Diversified,"Mumbai, India",8,50%,Expansion,100%+
+NTPC Renewable Energy,Renewables,PSU/Solar,"New Delhi, India",8,50%,Expansion,100%+
+Azure Power,Renewables,Solar,"New Delhi, India",7,50%,Expansion,100%+
+Sterling and Wilson,Renewables,EPC/Solar,"Mumbai, India",7,50%,Expansion,100%+
+Suzlon Energy,Renewables,Wind,"Pune, India",7,Turnaround,Order spree,300%+
+SJVN Green Energy,Renewables,PSU/Hydro,"Shimla, India",7,50%,Expansion,100%+
+KPI Green Energy,Renewables,Solar,"Surat, India",5,50%,Expansion,100%+
+Inox Wind,Renewables,Wind,"Noida, India",6,50%,Expansion,100%+
+Borosil Renewables,Renewables,Solar Glass,"Mumbai, India",6,50%,Expansion,100%+
+Vikram Solar,Renewables,Manufacturing,"Kolkata, India",6,50%,Expansion,100%+
+Waaree Energies,Renewables,Manufacturing,"Mumbai, India",6,50%,Expansion,100%+
+PolicyBazaar,InsurTech,Marketplace,"Gurugram, India",8,10%,N/A,15%
+Go Digit Insurance,InsurTech,Full-stack,"Bangalore, India",7,10%,N/A,15%
+TCS,IT Services,Consulting,"Mumbai, India",10,2%,Demand recovery,10%
+Infosys,IT Services,Consulting,"Bangalore, India",9,-7%,Stable guidance,9%
+HCL Technologies,IT Services,Consulting,"Noida, India",9,6%,New deals news,12%
+Wipro,IT Services,Consulting,"Bangalore, India",9,-12%,Consulting lag,5%
+Tech Mahindra,IT Services,Consulting,"Pune, India",8,5%,Stable,10%
+LTIMindtree,IT Services,Consulting,"Mumbai, India",8,5%,Stable,10%
+Mphasis,IT Services,Outsourcing,"Bangalore, India",7,5%,Stable,10%
+Persistent Systems,IT Services,Digital Eng,"Pune, India",6,5%,Stable,10%
+Coforge,IT Services,Digital Sol,"Noida, India",6,5%,Stable,10%
+Birlasoft,IT Services,Consulting,"Pune, India",5,5%,Stable,10%
+Zensar Technologies,IT Services,Consulting,"Pune, India",5,5%,Stable,10%
+Tata Elxsi,IT Services,Design/Tech,"Bangalore, India",6,5%,Stable,10%
+Tata Technologies,IT Services,Engineering,"Pune, India",6,5%,Stable,10%
+KPIT Technologies,IT Services,Auto Tech,"Pune, India",6,5%,Stable,10%
+Hexaware Technologies,IT Services,Consulting,"Mumbai, India",6,5%,Stable,10%
+Oracle Financial Services,IT Services,MNC/Fin Software,"Mumbai, India",8,5%,Stable,10%
+Nykaa,E-commerce,Beauty/Fashion,"Mumbai, India",7,106%,App downloads up,-5%
+Blinkit,E-commerce,Quick Commerce,"Gurugram, India",6,Growth,Rapid expansion,N/A
+Mamaearth,E-commerce,D2C Personal Care,"Gurugram, India",5,10%,N/A,15%
+Indian Hotels Co (Taj),Hospitality,Luxury Hotels,"Mumbai, India",9,10%,N/A,15%
+EIH Limited (Oberoi),Hospitality,Luxury Hotels,"New Delhi, India",8,10%,N/A,15%
+MakeMyTrip,Travel,Online Agency,"Gurugram, India",8,10%,N/A,15%
+EaseMyTrip,Travel,Online Agency,"New Delhi, India",6,10%,N/A,15%
+Yatra Online,Travel,Online Agency,"Gurugram, India",6,10%,N/A,15%
+Lemon Tree Hotels,Hospitality,Mid-scale,"New Delhi, India",6,10%,N/A,15%
+Chalet Hotels,Hospitality,Asset Owner,"Mumbai, India",6,10%,N/A,15%
+Mahindra Holidays,Hospitality,Vacation Club,"Mumbai, India",7,10%,N/A,15%
+Thomas Cook India,Travel,Tour Operator,"Mumbai, India",7,10%,N/A,15%
+Samhi Hotels,Hospitality,Asset Mgmt,"Gurugram, India",5,10%,N/A,15%
+Hindustan Unilever,FMCG,Diversified,"Mumbai, India",10,8%,Flat,12%
+ITC Limited,FMCG,Food/Personal Care,"Kolkata, India",9,10.7%,Record margins,24.5%
+Nestlé India,FMCG,MNC/Food,"Gurugram, India",9,8%,Flat,12%
+Britannia Industries,FMCG,Food,"Bangalore, India",8,8%,Flat,12%
+Dabur India,FMCG,Ayurvedic/Personal,"Ghaziabad, India",8,8%,Flat,12%
+Marico,FMCG,Personal Care,"Mumbai, India",7,8%,Flat,12%
+Godrej Consumer,FMCG,Personal/Home,"Mumbai, India",8,8%,Flat,12%
+Adani Wilmar,FMCG,Edible Oils,"Ahmedabad, India",8,8%,Flat,12%
+Tata Consumer Products,FMCG,Beverages/Food,"Mumbai, India",8,8%,Flat,12%
+Amul,FMCG,Dairy,"Anand, India",9,8%,Flat,12%
+Emami,FMCG,Personal Care,"Kolkata, India",6,8%,Flat,12%
+Varun Beverages,FMCG,Beverages,"Gurugram, India",8,8%,Flat,12%
+Sun Pharma,Pharma,Generics/API,"Mumbai, India",9,16.5%,New product launch,13%
+Dr. Reddy's Labs,Pharma,Generics,"Hyderabad, India",8,11%,US sales growth,18%
+Cipla,Pharma,Respiratory,"Mumbai, India",8,12%,Positive,15%
+Divi's Laboratories,Pharma,API,"Hyderabad, India",8,12%,Positive,15%
+Torrent Pharma,Pharma,CNS/CV,"Ahmedabad, India",7,12%,Positive,15%
+Mankind Pharma,Pharma,Consumer/Chronic,"New Delhi, India",7,12%,Positive,15%
+Lupin Limited,Pharma,Generics,"Mumbai, India",7,12%,Positive,15%
+Zydus Lifesciences,Pharma,Biologics/Vaccines,"Ahmedabad, India",7,12%,Positive,15%
+Aurobindo Pharma,Pharma,Generics/API,"Hyderabad, India",7,12%,Positive,15%
+Biocon,Pharma,Biosimilars,"Bangalore, India",7,12%,Positive,15%
+Alkem Laboratories,Pharma,Generics,"Mumbai, India",7,12%,Positive,15%
+Glenmark Pharma,Pharma,Dermatology,"Mumbai, India",6,12%,Positive,15%
+Ipca Laboratories,Pharma,Formulations,"Mumbai, India",6,12%,Positive,15%
+Laurus Labs,Pharma,API/Synthesis,"Hyderabad, India",6,12%,Positive,15%
+Pfizer India,Pharma,MNC/Patented,"Mumbai, India",9,12%,Positive,15%
+GSK Pharmaceuticals India,Pharma,MNC/Vaccines,"Mumbai, India",8,12%,Positive,15%
+Sanofi India,Pharma,MNC/Chronic,"Mumbai, India",8,12%,Positive,15%
+Maruti Suzuki,Automotive,Passenger,"Gurugram, India",9,33%,Sales up 15% YoY,74%
+Tata Motors,Automotive,Commercial/Pass,"Mumbai, India",9,137%,Sales up 8% YoY,45%
+Mahindra & Mahindra,Automotive,SUVs/Tractors,"Mumbai, India",9,25%,Sales Growth,40%
+Ashok Leyland,Automotive,Commercial,"Chennai, India",8,25%,Sales Growth,40%
+Bajaj Auto,Automotive,Two/Three Wheelers,"Pune, India",8,25%,Sales Growth,40%
+Hero MotoCorp,Automotive,Two-Wheelers,"New Delhi, India",8,25%,Sales Growth,40%
+TVS Motor Company,Automotive,Two/Three Wheelers,"Chennai, India",8,25%,Sales Growth,40%
+Eicher Motors,Automotive,Royal Enfield,"Gurugram, India",7,25%,Sales Growth,40%
+Force Motors,Automotive,LCVs,"Pune, India",5,25%,Sales Growth,40%
+SML Isuzu,Automotive,LCVs,"Chandigarh, India",4,25%,Sales Growth,40%
+Hyundai India,Automotive,MNC/Passenger,"Chennai, India",9,25%,Sales Growth,40%
+Toyota Kirloskar,Automotive,MNC/Passenger,"Bangalore, India",8,25%,Sales Growth,40%
+Kia India,Automotive,MNC/Passenger,"Anantapur, India",8,25%,Sales Growth,40%
+Honda Cars India,Automotive,MNC/Passenger,"Greater Noida, India",7,25%,Sales Growth,40%
+Volkswagen India,Automotive,MNC/Passenger,"Pune, India",7,25%,Sales Growth,40%
+Mercedes-Benz India,Automotive,MNC/Luxury,"Pune, India",7,25%,Sales Growth,40%
+BMW India,Automotive,MNC/Luxury,"Gurugram, India",7,25%,Sales Growth,40%
+JLR India,Automotive,MNC/Luxury,"Mumbai, India",7,25%,Sales Growth,40%
+Renault India,Automotive,MNC/Passenger,"Chennai, India",6,25%,Sales Growth,40%
+Aurum PropTech,PropTech,Investment Tech,"Navi Mumbai, India",4,10%,N/A,15%
+Awfis,PropTech,Coworking/SaaS,"New Delhi, India",5,10%,N/A,15%
+Tata Steel,Metals,Steel,"Jamshedpur, India",9,15%,Price recovery,10%
+JSW Steel,Metals,Steel,"Mumbai, India",9,413%,Input cost down,15%
+SAIL,Metals,PSU/Steel,"New Delhi, India",9,15%,Price recovery,10%
+Hindalco,Metals,Aluminum,"Mumbai, India",9,15%,Price recovery,10%
+Vedanta Limited,Mining,Diversified,"Mumbai, India",9,10%,N/A,15%
+NMDC,Mining,PSU/Iron Ore,"Hyderabad, India",8,10%,N/A,15%
+Coal India,Mining,PSU/Coal,"Kolkata, India",10,17%,Highest production,62%
+Hindustan Zinc,Metals,Zinc/Lead,"Udaipur, India",8,15%,Price recovery,10%
+NALCO,Metals,PSU/Aluminum,"Bhubaneswar, India",8,15%,Price recovery,10%
+Jindal Steel & Power,Metals,Steel,"New Delhi, India",8,15%,Price recovery,10%
+Welspun Corp,Metals,Pipes/Steel,"Mumbai, India",7,15%,Price recovery,10%
+APL Apollo,Metals,Tubes/Steel,"Ghaziabad, India",7,15%,Price recovery,10%
+Ratnamani Metals,Metals,Specialized,"Ahmedabad, India",6,15%,Price recovery,10%
+Shyam Metalics,Metals,Steel/Alloys,"Kolkata, India",6,15%,Price recovery,10%
+Graphite India,Industrials,Electrodes,"Kolkata, India",5,10%,N/A,15%
+HEG Limited,Industrials,Electrodes,"Noida, India",5,10%,N/A,15%
+Godawari Power,Metals,Steel/Power,"Raipur, India",5,15%,Price recovery,10%
+KIOCL,Mining,PSU/Iron Ore,"Bangalore, India",6,10%,N/A,15%
+MOIL,Mining,PSU/Manganese,"Nagpur, India",6,10%,N/A,15%
+Quick Heal,Cybersecurity,Endpoint,"Pune, India",5,10%,N/A,15%
+Subex,Cybersecurity,Fraud/Network,"Bangalore, India",4,10%,N/A,15%
+TAC Security,Cybersecurity,Vulnerability,"Chandigarh, India",2,10%,N/A,15%
