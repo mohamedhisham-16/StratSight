@@ -8,7 +8,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -80,10 +80,10 @@ function calculateFallbackScore(competitor, targetDomain, targetRegion) {
   // Domain Match (using source fields)
   if (getSimilarity(targetDomain, competitor[1] || '') >= 0.8) score += 0.3;
   if (getSimilarity(targetDomain, competitor[2] || '') >= 0.8) score += 0.2;
-  
+
   // Region Match
   if (targetRegion && getSimilarity(targetRegion, competitor[3] || '') >= 0.8) score += 0.1;
-  
+
   // Rating influence
   const rating = parseFloat(competitor[4]) || 0;
   score += (rating / 10) * 0.2;
@@ -102,7 +102,7 @@ function calculateListedScore(comp, perfData, targetDomain, targetRegion) {
   } else if (ADJACENCY_MAP[targetDomain] && ADJACENCY_MAP[targetDomain].includes(perfSector)) {
     score += SCORING_CONFIG_LISTED.DOMAIN_OVERLAP.ADJACENT;
   }
-  
+
   if (perfSubsector && getSimilarity(targetDomain, perfSubsector) >= 0.8) {
     score += SCORING_CONFIG_LISTED.DOMAIN_OVERLAP.SUB_CATEGORY;
   }
@@ -168,7 +168,7 @@ function calculateNonListedScore(comp, perfData, targetDomain) {
   // Quarterly Momentum
   const quarterProfit = parseProfit(perfData['Last Quarter Profit %']);
   const monthNews = perfData['Last Month Profit (News/Notes)'] || '';
-  
+
   if (quarterProfit !== null) {
     if (quarterProfit > 0) score += SCORING_CONFIG_NON_LISTED.QUARTERLY.POSITIVE;
     if (quarterProfit > (annualProfit || -Infinity) || hasKeywords(monthNews, ['narrowed', 'improved', 'reduced'])) {
@@ -200,15 +200,15 @@ function getSimilarity(s1, s2) {
   s2 = s2.toLowerCase().trim();
   if (s1 === s2) return 1;
   if (s1.includes(s2) || s2.includes(s1)) return 0.9; // Partial match bonus
-  
+
   const bigrams1 = new Set();
   for (let i = 0; i < s1.length - 1; i++) bigrams1.add(s1.slice(i, i + 2));
   const bigrams2 = new Set();
   for (let i = 0; i < s2.length - 1; i++) bigrams2.add(s2.slice(i, i + 2));
-  
+
   let intersect = 0;
   for (const b of bigrams1) if (bigrams2.has(b)) intersect++;
-  
+
   return (2 * intersect) / (bigrams1.size + bigrams2.size);
 }
 
@@ -224,13 +224,13 @@ app.use(express.json());
 // Find competitors endpoint
 app.post('/find-competitors', (req, res) => {
   const { domain, region } = req.body;
-  
+
   if (!domain) {
     return res.status(400).json({ error: 'Domain is required' });
   }
 
   const csvPath = path.join(__dirname, 'db', 'scrap', 'competitors.csv');
-  
+
   try {
     if (!fs.existsSync(csvPath)) {
       return res.status(404).json({ error: 'Competitors data not found' });
@@ -246,7 +246,7 @@ app.post('/find-competitors', (req, res) => {
     // Load performance data
     const listedPath = path.join(__dirname, 'db', 'scrap', 'listed_companies_performance.csv');
     const nonListedPath = path.join(__dirname, 'db', 'scrap', 'nonlisted_major_companies.csv');
-    
+
     let listedData = [];
     let nonListedData = [];
 
@@ -264,9 +264,9 @@ app.post('/find-competitors', (req, res) => {
       const rowIndustry = row[2] || '';
       const rowRegion = row[3] || '';
 
-      const domainMatch = getSimilarity(domain, rowDomain) >= threshold || 
-                          getSimilarity(domain, rowIndustry) >= threshold;
-      
+      const domainMatch = getSimilarity(domain, rowDomain) >= threshold ||
+        getSimilarity(domain, rowIndustry) >= threshold;
+
       if (!region) return domainMatch;
 
       const regionMatch = getSimilarity(region, rowRegion) >= threshold;
@@ -346,7 +346,7 @@ app.post('/find-competitors', (req, res) => {
 // Get competitors from current session
 app.post('/get-competitors', (req, res) => {
   const csvPath = path.join(__dirname, 'db', 'current', 'competitors.csv');
-  
+
   try {
     if (!fs.existsSync(csvPath)) {
       return res.json({ count: 0, results: [] });
@@ -434,7 +434,7 @@ app.post('/dashboard/market-trends', async (req, res) => {
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
-    
+
     // Clean JSON from code blocks if any
     const cleanJson = responseText.replace(/```json|```/g, '').trim();
     const trendData = JSON.parse(cleanJson);
@@ -442,7 +442,7 @@ app.post('/dashboard/market-trends', async (req, res) => {
     res.json(trendData);
   } catch (error) {
     console.error('Error generating market trends:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to generate AI trends.',
       details: error.message,
       fallback: {
