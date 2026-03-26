@@ -28,6 +28,17 @@ const app = express();
 const parser = new RSSParser();
 const PORT = process.env.PORT || 5000;
 
+// Clear persistent signal cache on startup to ensure fresh data
+const signalCacheDir = path.join(__dirname, 'db', 'current');
+if (fs.existsSync(signalCacheDir)) {
+  fs.readdirSync(signalCacheDir).forEach(file => {
+    if (file.endsWith('.json')) {
+      fs.unlinkSync(path.join(signalCacheDir, file));
+    }
+  });
+  console.log('Pruned existing signal cache in db/current/ for fresh initialization.');
+}
+
 // Scoring Configurations
 const SCORING_CONFIG_LISTED = {
   DOMAIN_OVERLAP: { CATEGORY: 0.2, SUB_CATEGORY: 0.15, ADJACENT: 0.08 },
@@ -530,8 +541,9 @@ app.post('/signals', async (req, res) => {
   }
 
   try {
-    // 1. Fetch Google News RSS for the past 3 months
-    const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(company_name)}+when:3m&hl=en-IN&gl=IN&ceid=IN:en`;
+    // 1. Fetch Google News RSS (India context)
+    const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(company_name)}&hl=en-IN&gl=IN&ceid=IN:en`;
+    console.log(`Fetching RSS: ${rssUrl}`);
     const feed = await parser.parseURL(rssUrl);
 
     // 2. Limit to top 10 items
@@ -542,8 +554,10 @@ app.post('/signals', async (req, res) => {
     }));
 
     if (newsItems.length === 0) {
+      console.warn(`No news found for ${company_name}`);
       return res.json([]);
     }
+    console.log(`Found ${newsItems.length} news items for ${company_name}`);
 
     // 3. Use Gemini to structure and classify signals
     const prompt = `
@@ -582,6 +596,7 @@ app.post('/signals', async (req, res) => {
 
     const result = await response.json();
     const responseText = result.response;
+    console.log(`Ollama Response for ${company_name}:`, responseText.substring(0, 50) + "...");
 
     const cleanJson = responseText.replace(/```json|```/g, '').trim();
     const signals = JSON.parse(cleanJson);
