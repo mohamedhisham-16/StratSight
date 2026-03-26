@@ -20,7 +20,6 @@ const navigation = [
   { name: "Parameters", href: "/dashboard/tracking", icon: Settings2 },
   { name: "Competitors", href: "/dashboard/competitors", icon: Users },
   { name: "Market Trends", href: "/dashboard/trends", icon: TrendingUp },
-  { name: "Signals", href: "/dashboard/signals", icon: Activity },
   { name: "Insights", href: "/dashboard/insights", icon: Lightbulb },
 ];
 

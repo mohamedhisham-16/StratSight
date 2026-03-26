@@ -10,10 +10,10 @@ export function MarketTrendsChart() {
   useEffect(() => {
     const cached = localStorage.getItem("stratsight_trends_cache");
     if (cached) {
-        try { 
-            setTrendData(JSON.parse(cached));
-            setIsLoading(false);
-        } catch(e){}
+      try {
+        setTrendData(JSON.parse(cached));
+        setIsLoading(false);
+      } catch (e) { }
     }
 
     const fetchTrends = async () => {
@@ -30,25 +30,25 @@ export function MarketTrendsChart() {
         console.log("data")
         console.log(data)
         if (data && data.error && data.fallback) {
-            // Supply explicit geometric mock data so graph never stays at 0
-            if (!data.fallback.series || data.fallback.series.length === 0) {
-                data.fallback.series = [
-                    { date: "Day 1", isPredictive: false, volume: 800 },
-                    { date: "Day 2", isPredictive: false, volume: 850 },
-                    { date: "Day 3", isPredictive: false, volume: 820 },
-                    { date: "Day 4", isPredictive: false, volume: 900 },
-                    { date: "Day 5", isPredictive: false, volume: 950 },
-                    { date: "Day 6", isPredictive: true, volume: 980 },
-                    { date: "Day 7", isPredictive: true, volume: 1050 }
-                ];
-                data.fallback.percentageChange = 12.5;
-                data.fallback.trendDirection = "BULLISH";
-            }
-            setTrendData(data.fallback);
-            localStorage.setItem("stratsight_trends_cache", JSON.stringify(data.fallback));
+          // Supply explicit geometric mock data so graph never stays at 0
+          if (!data.fallback.series || data.fallback.series.length === 0) {
+            data.fallback.series = [
+              { date: "Previous Quarter 7", isPredictive: false, volume: 800 },
+              { date: "Previous Quarter 6", isPredictive: false, volume: 850 },
+              { date: "Previous Quarter 5", isPredictive: false, volume: 820 },
+              { date: "Previous Quarter 4", isPredictive: false, volume: 900 },
+              { date: "Previous Quarter 3", isPredictive: false, volume: 950 },
+              { date: "Previous Quarter 2", isPredictive: true, volume: 980 },
+              { date: "Previous Quarter 1", isPredictive: true, volume: 1050 }
+            ];
+            data.fallback.percentageChange = 12.5;
+            data.fallback.trendDirection = "BULLISH";
+          }
+          setTrendData(data.fallback);
+          localStorage.setItem("stratsight_trends_cache", JSON.stringify(data.fallback));
         } else {
-            setTrendData(data);
-            localStorage.setItem("stratsight_trends_cache", JSON.stringify(data));
+          setTrendData(data);
+          localStorage.setItem("stratsight_trends_cache", JSON.stringify(data));
         }
       } catch (err) {
         console.error("Trends API Error:", err);

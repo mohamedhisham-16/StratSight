@@ -770,7 +770,8 @@ app.get('/get-signals', (req, res) => {
       }
     }
 
-    res.json(combined.slice(0, 4));
+    const limit = req.query.limit;
+    res.json(limit === 'all' ? combined : combined.slice(0, 4));
   } catch (error) {
     console.error('Error getting signals:', error);
     res.status(500).json({ error: 'Failed to retrieve signals.' });

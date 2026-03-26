@@ -22,19 +22,7 @@ export default function Home() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-4 z-10">
-          <button className="px-5 py-2.5 rounded-xl glass-panel text-sm font-semibold text-zinc-300 hover:text-white transition-all flex items-center gap-2 group">
-            <Download className="h-4 w-4 text-zinc-400 group-hover:text-indigo-400 transition-colors" />
-            Export Data
-          </button>
-          <button className="relative px-6 py-2.5 rounded-xl text-white text-sm font-bold shadow-lg shadow-indigo-500/25 active:scale-95 flex items-center gap-2 group overflow-hidden bg-indigo-600 hover:bg-indigo-500 transition-colors border border-indigo-400/50">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
-            <span className="relative z-10 flex items-center gap-2">
-              Add Competitor
-              <ArrowUpRight className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            </span>
-          </button>
-        </div>
+
       </section>
 
       {/* Overview Cards */}
